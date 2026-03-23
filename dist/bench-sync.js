@@ -4,8 +4,8 @@
   // ============================================================
   // CONFIG — Replace these with your Supabase project credentials
   // ============================================================
-  const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  const SUPABASE_URL = 'https://bxfrghqxkxzaibjavykl.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4ZnJnaHF4a3h6YWliamF2eWtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyOTcyNTQsImV4cCI6MjA4OTg3MzI1NH0.r-DycVwQFyHmjraPwLiuyRw0VPypvtefVI9obiGvp9s';
 
   const LS_PREFIX = 'bench:';
   const SYNC_KEYS = ['nk:settings', 'nk:sessions', 'nk:prs', 'nk:programmes'];
