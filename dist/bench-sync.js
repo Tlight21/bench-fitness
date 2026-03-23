@@ -2,7 +2,7 @@
   'use strict';
 
   // ============================================================
-  // CONFIG — Replace these with your Supabase project credentials
+  // CONFIG
   // ============================================================
   const SUPABASE_URL = 'https://bxfrghqxkxzaibjavykl.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4ZnJnaHF4a3h6YWliamF2eWtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyOTcyNTQsImV4cCI6MjA4OTg3MzI1NH0.r-DycVwQFyHmjraPwLiuyRw0VPypvtefVI9obiGvp9s';
@@ -10,6 +10,21 @@
   const LS_PREFIX = 'bench:';
   const SYNC_KEYS = ['nk:settings', 'nk:sessions', 'nk:prs', 'nk:programmes'];
   const SYNC_TS_PREFIX = 'bench_sync_ts:';
+
+  // ============================================================
+  // Hide the app until authenticated
+  // ============================================================
+  var styleTag = document.createElement('style');
+  styleTag.textContent = '#root { display: none !important; } #bench-gate { display: flex; }';
+  document.head.appendChild(styleTag);
+
+  function showApp() {
+    styleTag.textContent = '#root { display: block !important; } #bench-gate { display: none !important; }';
+  }
+
+  function hideApp() {
+    styleTag.textContent = '#root { display: none !important; } #bench-gate { display: flex; }';
+  }
 
   // ============================================================
   // Supabase Client
@@ -125,15 +140,12 @@
         var localTimestamp = localStorage.getItem(SYNC_TS_PREFIX + key);
 
         if (remote && !localRaw) {
-          // Remote exists, local empty — take remote
           localStorage.setItem(LS_PREFIX + key, JSON.stringify(remote.value));
           localStorage.setItem(SYNC_TS_PREFIX + key, remote.updated_at);
           dataChanged = true;
         } else if (!remote && localRaw) {
-          // Local exists, remote empty — push local to remote
           await syncToSupabase(key, localRaw);
         } else if (remote && localRaw) {
-          // Both exist — compare timestamps, latest wins
           var remoteTime = new Date(remote.updated_at).getTime();
           var localTime = localTimestamp ? new Date(localTimestamp).getTime() : 0;
 
@@ -147,22 +159,20 @@
         }
       }
 
-      // Flush any queued writes
       if (writeQueue.length > 0) scheduleRetry();
 
-      updateSyncStatus('synced');
+      // Show the app now that sync is done
+      showApp();
 
-      // Reload if remote data was newer, so React picks up the new localStorage values
+      // Reload if remote data was newer so React picks up new localStorage
       if (dataChanged) {
         window.location.reload();
       }
-    } catch (_) {
-      updateSyncStatus('error');
-    }
+    } catch (_) { /* silent */ }
     syncInProgress = false;
   }
 
-  // Re-sync when tab becomes visible again
+  // Re-sync when tab becomes visible
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'visible') {
       performInitialSync();
@@ -185,10 +195,7 @@
         localStorage.setItem(LS_PREFIX + key, strValue);
 
         if (SYNC_KEYS.indexOf(key) !== -1) {
-          updateSyncStatus('syncing');
-          syncToSupabase(key, strValue).then(function () {
-            updateSyncStatus('synced');
-          });
+          syncToSupabase(key, strValue);
         }
 
         return { key: key, value: value };
@@ -212,139 +219,55 @@
   };
 
   // ============================================================
-  // Auth UI — injected into the DOM
+  // Auth Gate — full-screen landing page
   // ============================================================
-  var authBtn = null;
-  var syncDot = null;
-
-  function updateSyncStatus(status) {
-    if (!syncDot) return;
-    var colors = { synced: '#34C759', syncing: '#FF9500', error: '#FF3B30' };
-    syncDot.style.background = colors[status] || '#6B6B6B';
-  }
-
-  function updateAuthUI(user) {
-    if (!authBtn) return;
-    if (user) {
-      var initial = (user.email || '?')[0].toUpperCase();
-      authBtn.innerHTML = '';
-      // Sync dot
-      syncDot = document.createElement('span');
-      syncDot.style.cssText = 'display:inline-block;width:6px;height:6px;border-radius:50%;background:#34C759;margin-right:8px;';
-      authBtn.appendChild(syncDot);
-      // User initial
-      var txt = document.createTextNode(initial);
-      authBtn.appendChild(txt);
-      authBtn.style.color = '#FFFFFF';
-    } else {
-      syncDot = null;
-      authBtn.textContent = 'SIGN IN';
-      authBtn.style.color = '#9B9B9B';
-    }
-  }
-
-  function createAuthButton() {
-    authBtn = document.createElement('div');
-    authBtn.id = 'bench-sync-btn';
-    authBtn.style.cssText =
-      'position:fixed;bottom:80px;right:16px;z-index:9999;' +
-      'background:#1A1A1A;border:1px solid #3A3A3A;border-radius:20px;' +
-      'padding:8px 14px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;' +
-      'font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;' +
-      'color:#9B9B9B;cursor:pointer;user-select:none;';
-    authBtn.textContent = 'SIGN IN';
-    authBtn.addEventListener('click', toggleAuthModal);
-    document.body.appendChild(authBtn);
-  }
-
-  // ============================================================
-  // Auth Modal
-  // ============================================================
-  var modalEl = null;
   var isSignUp = false;
 
-  function toggleAuthModal() {
-    var client = getClient();
-    if (!client) return;
+  function createGate() {
+    var gate = document.createElement('div');
+    gate.id = 'bench-gate';
+    gate.style.cssText =
+      'position:fixed;inset:0;z-index:10000;background:#0A0A0A;' +
+      'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+      'font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;';
 
-    // If logged in, show account menu instead
-    client.auth.getSession().then(function (res) {
-      if (res.data.session) {
-        showAccountMenu(res.data.session.user);
-      } else {
-        showAuthModal();
-      }
-    });
-  }
-
-  function showAccountMenu(user) {
-    if (modalEl) { closeModal(); return; }
-
-    modalEl = document.createElement('div');
-    modalEl.id = 'bench-sync-modal';
-    modalEl.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;';
-    modalEl.addEventListener('click', function (e) { if (e.target === modalEl) closeModal(); });
-
-    var card = document.createElement('div');
-    card.style.cssText = 'background:#1A1A1A;border-radius:12px;padding:32px;width:min(320px,85vw);font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;';
-
-    card.innerHTML =
-      '<div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#9B9B9B;text-transform:uppercase;margin-bottom:20px;">ACCOUNT</div>' +
-      '<div style="color:#fff;font-size:14px;margin-bottom:20px;word-break:break-all;">' + (user.email || '') + '</div>' +
-      '<button id="bs-signout" style="width:100%;background:#2A2A2A;color:#FF3B30;border:1px solid #3A3A3A;border-radius:4px;padding:14px;font-size:12px;font-weight:800;letter-spacing:1px;cursor:pointer;font-family:inherit;text-transform:uppercase;">SIGN OUT</button>';
-
-    modalEl.appendChild(card);
-    document.body.appendChild(modalEl);
-
-    document.getElementById('bs-signout').addEventListener('click', function () {
-      getClient().auth.signOut().then(function () {
-        updateAuthUI(null);
-        closeModal();
-      });
-    });
-  }
-
-  function showAuthModal() {
-    if (modalEl) { closeModal(); return; }
-    isSignUp = false;
-
-    modalEl = document.createElement('div');
-    modalEl.id = 'bench-sync-modal';
-    modalEl.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;';
-    modalEl.addEventListener('click', function (e) { if (e.target === modalEl) closeModal(); });
-
-    var card = document.createElement('div');
-    card.style.cssText = 'background:#1A1A1A;border-radius:12px;padding:32px;width:min(320px,85vw);font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;';
-
-    card.innerHTML =
-      '<div id="bs-title" style="font-size:10px;font-weight:800;letter-spacing:2px;color:#9B9B9B;text-transform:uppercase;margin-bottom:20px;">SIGN IN TO BENCH</div>' +
-      '<input id="bs-email" type="email" placeholder="Email" autocomplete="email" style="' +
-        'width:100%;box-sizing:border-box;background:#2A2A2A;border:1px solid #3A3A3A;' +
-        'border-radius:4px;padding:12px;color:#fff;font-size:14px;font-family:inherit;margin-bottom:10px;outline:none;" />' +
-      '<input id="bs-password" type="password" placeholder="Password" autocomplete="current-password" style="' +
-        'width:100%;box-sizing:border-box;background:#2A2A2A;border:1px solid #3A3A3A;' +
-        'border-radius:4px;padding:12px;color:#fff;font-size:14px;font-family:inherit;margin-bottom:16px;outline:none;" />' +
-      '<div id="bs-error" style="color:#FF3B30;font-size:12px;margin-bottom:10px;display:none;"></div>' +
-      '<button id="bs-submit" style="' +
-        'width:100%;background:#FA5400;color:#fff;border:none;border-radius:4px;padding:14px;' +
-        'font-size:12px;font-weight:800;letter-spacing:1px;cursor:pointer;font-family:inherit;text-transform:uppercase;">SIGN IN</button>' +
-      '<div style="text-align:center;margin-top:14px;">' +
-        '<span id="bs-toggle" style="color:#6B6B6B;font-size:11px;cursor:pointer;">' +
-          'Don\'t have an account? <span style="color:#FA5400;">Sign up</span>' +
-        '</span>' +
+    gate.innerHTML =
+      '<div style="width:min(320px,85vw);text-align:center;">' +
+        // Logo
+        '<div style="font-size:32px;font-weight:800;letter-spacing:8px;color:#FFFFFF;text-transform:uppercase;margin-bottom:48px;">BENCH</div>' +
+        // Form
+        '<input id="bs-email" type="email" placeholder="Email" autocomplete="email" style="' +
+          'width:100%;box-sizing:border-box;background:#1A1A1A;border:1px solid #2A2A2A;' +
+          'border-radius:8px;padding:14px 16px;color:#fff;font-size:15px;font-family:inherit;' +
+          'margin-bottom:10px;outline:none;" />' +
+        '<input id="bs-password" type="password" placeholder="Password" autocomplete="current-password" style="' +
+          'width:100%;box-sizing:border-box;background:#1A1A1A;border:1px solid #2A2A2A;' +
+          'border-radius:8px;padding:14px 16px;color:#fff;font-size:15px;font-family:inherit;' +
+          'margin-bottom:16px;outline:none;" />' +
+        '<div id="bs-error" style="color:#FF3B30;font-size:13px;margin-bottom:12px;display:none;"></div>' +
+        '<button id="bs-submit" style="' +
+          'width:100%;background:#FA5400;color:#fff;border:none;border-radius:8px;padding:16px;' +
+          'font-size:13px;font-weight:800;letter-spacing:2px;cursor:pointer;font-family:inherit;' +
+          'text-transform:uppercase;">SIGN IN</button>' +
+        '<div style="margin-top:20px;">' +
+          '<span id="bs-toggle" style="color:#6B6B6B;font-size:12px;cursor:pointer;">' +
+            'Don\'t have an account? <span style="color:#FA5400;">Sign up</span>' +
+          '</span>' +
+        '</div>' +
       '</div>';
 
-    modalEl.appendChild(card);
-    document.body.appendChild(modalEl);
+    document.body.appendChild(gate);
 
     // Wire events
     document.getElementById('bs-submit').addEventListener('click', handleSubmit);
     document.getElementById('bs-password').addEventListener('keydown', function (e) {
       if (e.key === 'Enter') handleSubmit();
     });
+    document.getElementById('bs-email').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') document.getElementById('bs-password').focus();
+    });
     document.getElementById('bs-toggle').addEventListener('click', function () {
       isSignUp = !isSignUp;
-      document.getElementById('bs-title').textContent = isSignUp ? 'CREATE ACCOUNT' : 'SIGN IN TO BENCH';
       document.getElementById('bs-submit').textContent = isSignUp ? 'SIGN UP' : 'SIGN IN';
       document.getElementById('bs-password').setAttribute('autocomplete', isSignUp ? 'new-password' : 'current-password');
       document.getElementById('bs-toggle').innerHTML = isSignUp
@@ -352,8 +275,6 @@
         : 'Don\'t have an account? <span style="color:#FA5400;">Sign up</span>';
       document.getElementById('bs-error').style.display = 'none';
     });
-
-    document.getElementById('bs-email').focus();
   }
 
   async function handleSubmit() {
@@ -374,6 +295,7 @@
     }
 
     btn.disabled = true;
+    btn.style.opacity = '0.6';
     btn.textContent = isSignUp ? 'CREATING...' : 'SIGNING IN...';
     errEl.style.display = 'none';
 
@@ -390,50 +312,114 @@
       errEl.textContent = result.error.message;
       errEl.style.display = 'block';
       btn.disabled = false;
+      btn.style.opacity = '1';
       btn.textContent = isSignUp ? 'SIGN UP' : 'SIGN IN';
       return;
     }
 
-    closeModal();
-    // Auth state change listener will handle sync + UI update
-  }
-
-  function closeModal() {
-    if (modalEl) {
-      modalEl.remove();
-      modalEl = null;
-    }
+    // Auth state change listener handles showing the app
   }
 
   // ============================================================
-  // Init — wait for DOM, then set up auth listener + UI
+  // Account button (shown when logged in, inside the app)
+  // ============================================================
+  function createAccountButton(user) {
+    var existing = document.getElementById('bench-sync-btn');
+    if (existing) existing.remove();
+
+    var btn = document.createElement('div');
+    btn.id = 'bench-sync-btn';
+    btn.style.cssText =
+      'position:fixed;bottom:80px;right:16px;z-index:9999;' +
+      'background:#1A1A1A;border:1px solid #3A3A3A;border-radius:20px;' +
+      'padding:8px 14px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;' +
+      'font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;' +
+      'color:#FFFFFF;cursor:pointer;user-select:none;';
+
+    var dot = document.createElement('span');
+    dot.id = 'bench-sync-dot';
+    dot.style.cssText = 'display:inline-block;width:6px;height:6px;border-radius:50%;background:#34C759;margin-right:8px;';
+    btn.appendChild(dot);
+
+    var initial = (user.email || '?')[0].toUpperCase();
+    btn.appendChild(document.createTextNode(initial));
+
+    btn.addEventListener('click', function () {
+      showAccountModal(user);
+    });
+
+    document.body.appendChild(btn);
+  }
+
+  function showAccountModal(user) {
+    // Remove existing modal if any
+    var existing = document.getElementById('bench-account-modal');
+    if (existing) { existing.remove(); return; }
+
+    var overlay = document.createElement('div');
+    overlay.id = 'bench-account-modal';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;';
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
+
+    var card = document.createElement('div');
+    card.style.cssText = 'background:#1A1A1A;border-radius:12px;padding:32px;width:min(320px,85vw);font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;';
+
+    card.innerHTML =
+      '<div style="font-size:10px;font-weight:800;letter-spacing:2px;color:#9B9B9B;text-transform:uppercase;margin-bottom:20px;">ACCOUNT</div>' +
+      '<div style="color:#fff;font-size:14px;margin-bottom:24px;word-break:break-all;">' + (user.email || '') + '</div>' +
+      '<button id="bs-signout" style="width:100%;background:#2A2A2A;color:#FF3B30;border:1px solid #3A3A3A;border-radius:8px;padding:14px;font-size:12px;font-weight:800;letter-spacing:1px;cursor:pointer;font-family:inherit;text-transform:uppercase;">SIGN OUT</button>';
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    document.getElementById('bs-signout').addEventListener('click', function () {
+      getClient().auth.signOut().then(function () {
+        overlay.remove();
+        var accBtn = document.getElementById('bench-sync-btn');
+        if (accBtn) accBtn.remove();
+        hideApp();
+        // Reset the gate form
+        var emailInput = document.getElementById('bs-email');
+        var passInput = document.getElementById('bs-password');
+        var errEl = document.getElementById('bs-error');
+        var submitBtn = document.getElementById('bs-submit');
+        if (emailInput) emailInput.value = '';
+        if (passInput) passInput.value = '';
+        if (errEl) errEl.style.display = 'none';
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = '1'; submitBtn.textContent = 'SIGN IN'; }
+        isSignUp = false;
+      });
+    });
+  }
+
+  // ============================================================
+  // Init
   // ============================================================
   function init() {
     var client = getClient();
     if (!client) return;
 
-    createAuthButton();
+    createGate();
 
     // Listen for auth state changes
     client.auth.onAuthStateChange(function (event, session) {
       if (event === 'SIGNED_IN' && session) {
-        updateAuthUI(session.user);
+        createAccountButton(session.user);
         performInitialSync();
       } else if (event === 'SIGNED_OUT') {
-        updateAuthUI(null);
+        hideApp();
       }
     });
 
     // Check for existing session on load
     client.auth.getSession().then(function (res) {
       if (res.data.session) {
-        updateAuthUI(res.data.session.user);
+        createAccountButton(res.data.session.user);
         performInitialSync();
       }
     });
   }
 
-  // Run init when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
