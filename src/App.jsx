@@ -29,6 +29,16 @@ export default function App() {
   const [settings, setSettings] = useState({ startDate: '2026-03-23' })
   const [loading, setLoading] = useState(true)
 
+  // Auto-save active session to localStorage
+  const saveActiveSession = (session) => {
+    setCurrentSession(session)
+    if (session) {
+      localStorage.setItem('bench:active_session', JSON.stringify(session))
+    } else {
+      localStorage.removeItem('bench:active_session')
+    }
+  }
+
   // Check for existing session on mount
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -94,6 +104,14 @@ export default function App() {
       setProgrammes(JSON.parse(p.value))
     } catch {}
 
+    // Restore active session if one was in progress
+    try {
+      const saved = localStorage.getItem('bench:active_session')
+      if (saved) {
+        setCurrentSession(JSON.parse(saved))
+      }
+    } catch {}
+
     setLoading(false)
   }
 
@@ -123,7 +141,7 @@ export default function App() {
     })
     savePrs(newPrs)
     saveSessions([completedSession, ...sessions])
-    setCurrentSession(null)
+    saveActiveSession(null)
     setTab('today')
   }
 
@@ -287,7 +305,8 @@ export default function App() {
         sessions={sessions}
         prs={prs}
         onComplete={handleSessionComplete}
-        onDiscard={() => setCurrentSession(null)}
+        onDiscard={() => saveActiveSession(null)}
+        onUpdate={(updated) => saveActiveSession(updated)}
       />
     )
   }
@@ -344,7 +363,7 @@ export default function App() {
           prog={prog}
           settings={settings}
           sessions={sessions}
-          onStart={setCurrentSession}
+          onStart={saveActiveSession}
         />
       )}
       {tab === 'progress' && (

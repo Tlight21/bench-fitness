@@ -1,14 +1,25 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { E } from '../theme'
 import Label from '../components/Label'
 import Divider from '../components/Divider'
 import { shortDate } from '../utils/dates'
 import { getProgression } from '../utils/progression'
 
-export default function Session({ session, sessions, prs, onComplete, onDiscard }) {
+export default function Session({ session, sessions, prs, onComplete, onDiscard, onUpdate }) {
   const [exercises, setExercises] = useState(session.exercises)
   const [exIdx, setExIdx] = useState(0)
   const [setIdx, setSetIdx] = useState(0)
+
+  // Auto-save whenever exercises change
+  const updateExercises = useCallback((updater) => {
+    setExercises(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      if (onUpdate) {
+        onUpdate({ ...session, exercises: next })
+      }
+      return next
+    })
+  }, [session, onUpdate])
 
   const ex = exercises[exIdx]
   const totalSets = exercises.reduce((n, e) => n + e.sets.length, 0)
@@ -19,7 +30,7 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard 
   const isPR = (eid, weight) => weight && !isNaN(parseFloat(weight)) && prs[eid] && parseFloat(weight) > prs[eid]
 
   const updateSet = (eI, sI, field, value) => {
-    setExercises(prev => prev.map((e, i) =>
+    updateExercises(prev => prev.map((e, i) =>
       i !== eI ? e : {
         ...e,
         sets: e.sets.map((s, j) => j !== sI ? s : { ...s, [field]: value }),
@@ -28,7 +39,7 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard 
   }
 
   const completeSet = (eI, sI) => {
-    setExercises(prev => prev.map((e, i) =>
+    updateExercises(prev => prev.map((e, i) =>
       i !== eI ? e : {
         ...e,
         sets: e.sets.map((s, j) => j !== sI ? s : { ...s, completed: true }),
@@ -44,7 +55,7 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard 
   }
 
   const deleteSet = (eI, sI) => {
-    setExercises(prev => prev.map((e, i) => {
+    updateExercises(prev => prev.map((e, i) => {
       if (i !== eI) return e
       const newSets = e.sets.filter((_, j) => j !== sI)
       return { ...e, sets: newSets }
@@ -56,7 +67,7 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard 
   }
 
   const addSet = (eI) => {
-    setExercises(prev => prev.map((e, i) =>
+    updateExercises(prev => prev.map((e, i) =>
       i !== eI ? e : {
         ...e,
         sets: [...e.sets, { reps: '', weight: '', completed: false }],
@@ -65,7 +76,7 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard 
   }
 
   const completeAll = (eI) => {
-    setExercises(prev => prev.map((e, i) =>
+    updateExercises(prev => prev.map((e, i) =>
       i !== eI ? e : {
         ...e,
         sets: e.sets.map(s => ({ ...s, completed: true })),
