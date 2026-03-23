@@ -1,0 +1,13 @@
+export const E = {
+  black:  '#0A0A0A',
+  white:  '#FFFFFF',
+  gray1:  '#1A1A1A',
+  gray2:  '#2A2A2A',
+  gray3:  '#3A3A3A',
+  gray4:  '#6B6B6B',
+  gray5:  '#9B9B9B',
+  gray6:  '#CCCCCC',
+  accent: '#FA5400',
+  green:  '#00C853',
+  red:    '#FF3B30',
+}
