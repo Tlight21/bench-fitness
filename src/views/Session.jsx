@@ -152,12 +152,12 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
                 }}>
                 <span style={{
                   fontSize: 10, fontWeight: 700,
-                  color: done ? E.green : active ? E.white : E.gray4,
+                  color: done ? E.green : active ? E.white : E.gray5,
                   letterSpacing: 0.5, whiteSpace: 'nowrap',
                 }}>{done ? '✓' : `${idx + 1}`}</span>
                 <span style={{
                   fontSize: 10,
-                  color: done ? E.green : active ? E.white : E.gray4,
+                  color: done ? E.green : active ? E.white : E.gray5,
                   whiteSpace: 'nowrap', maxWidth: 64,
                   overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>{e.name.split(' ')[0]}</span>
@@ -201,10 +201,10 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
                       {prog.isBW ? 'BW' : `${prog.lastWeight}kg`}
                     </div>
                     <div style={{ fontSize: 12, color: E.gray5, marginTop: 2 }}>{prog.avgReps} reps avg</div>
-                    <div style={{ fontSize: 10, color: E.gray4, marginTop: 2 }}>{shortDate(prog.lastDate)}</div>
+                    <div style={{ fontSize: 10, color: E.gray5, marginTop: 2 }}>{shortDate(prog.lastDate)}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ fontSize: 16, color: E.gray3 }}>→</div>
+                    <div style={{ fontSize: 16, color: E.gray5 }}>→</div>
                   </div>
                   <div>
                     <Label style={{ marginBottom: 5, color: E.accent }}>Beat this</Label>
@@ -266,38 +266,39 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
                       </span>
                       <button onClick={() => deleteSet(exIdx, sIdx)} className="tap" style={{
                         background: 'transparent', border: 'none',
-                        color: E.red, fontSize: 10, fontWeight: 700,
-                        letterSpacing: 1, cursor: 'pointer', fontFamily: 'inherit',
-                        textTransform: 'uppercase', padding: '4px 0',
-                      }}>Delete</button>
+                        color: E.gray5, fontSize: 14, cursor: 'pointer',
+                        fontFamily: 'inherit', padding: '2px 4px', lineHeight: 1,
+                      }}>×</button>
                     </div>
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      value={s.weight}
-                      onChange={e => updateSet(exIdx, sIdx, 'weight', e.target.value)}
-                      placeholder="Weight (kg)"
-                      style={{
-                        width: '100%', boxSizing: 'border-box',
-                        background: E.gray2, color: E.white, border: 'none',
-                        padding: 12, marginBottom: 10, fontSize: 14,
-                        fontFamily: 'inherit', borderRadius: 4,
-                        borderBottom: pr ? `2px solid ${E.accent}` : 'none',
-                      }}
-                    />
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      value={s.reps}
-                      onChange={e => updateSet(exIdx, sIdx, 'reps', e.target.value)}
-                      placeholder="Reps"
-                      style={{
-                        width: '100%', boxSizing: 'border-box',
-                        background: E.gray2, color: E.white, border: 'none',
-                        padding: 12, marginBottom: 10, fontSize: 14,
-                        fontFamily: 'inherit', borderRadius: 4,
-                      }}
-                    />
+                    <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        value={s.weight}
+                        onChange={e => updateSet(exIdx, sIdx, 'weight', e.target.value)}
+                        placeholder="Weight (kg)"
+                        style={{
+                          flex: 1, minWidth: 0, boxSizing: 'border-box',
+                          background: E.gray2, color: E.white, border: 'none',
+                          padding: 12, fontSize: 14,
+                          fontFamily: 'inherit', borderRadius: 4,
+                          borderBottom: pr ? `2px solid ${E.accent}` : 'none',
+                        }}
+                      />
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        value={s.reps}
+                        onChange={e => updateSet(exIdx, sIdx, 'reps', e.target.value)}
+                        placeholder="Reps"
+                        style={{
+                          flex: 1, minWidth: 0, boxSizing: 'border-box',
+                          background: E.gray2, color: E.white, border: 'none',
+                          padding: 12, fontSize: 14,
+                          fontFamily: 'inherit', borderRadius: 4,
+                        }}
+                      />
+                    </div>
                     <button onClick={() => completeSet(exIdx, sIdx)} className="tap" style={{
                       width: '100%', background: E.accent, color: E.black,
                       border: 'none', padding: 12, fontSize: 12, fontWeight: 800,

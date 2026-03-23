@@ -40,7 +40,7 @@ export default function History({ sessions, onDelete }) {
                         {s.phaseName} · Week {s.weekNum}
                       </div>
                     </div>
-                    <div style={{ fontSize: 11, color: E.gray4 }}>{shortDate(s.date)}</div>
+                    <div style={{ fontSize: 11, color: E.gray5 }}>{shortDate(s.date)}</div>
                   </div>
                 </button>
 

@@ -70,7 +70,7 @@ export default function Today({ prog, settings, sessions, onStart }) {
         <div style={{ marginTop: 20, marginBottom: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
             <Label>Programme Progress</Label>
-            <span style={{ fontSize: 10, fontWeight: 700, color: E.gray4 }}>{pct}%</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: E.gray5 }}>{pct}%</span>
           </div>
           <div style={{ height: 2, background: E.gray2 }}>
             <div style={{ height: '100%', background: E.white, width: `${pct}%`, transition: 'width 0.4s' }} />
@@ -157,7 +157,7 @@ export default function Today({ prog, settings, sessions, onStart }) {
                           <Label style={{ marginBottom: 2 }}>Last time</Label>
                           <span style={{ fontSize: 12, color: E.gray6 }}>
                             {prog.isBW ? `BW × ${prog.lastReps}` : `${prog.lastWeight} kg × ${prog.avgReps}`}
-                            <span style={{ fontSize: 10, color: E.gray4, marginLeft: 6 }}>
+                            <span style={{ fontSize: 10, color: E.gray5, marginLeft: 6 }}>
                               {shortDate(prog.lastDate)}
                             </span>
                           </span>
@@ -225,7 +225,7 @@ export default function Today({ prog, settings, sessions, onStart }) {
                     {s.phaseName} · Week {s.weekNum}
                   </div>
                 </div>
-                <div style={{ fontSize: 11, color: E.gray4 }}>{shortDate(s.date)}</div>
+                <div style={{ fontSize: 11, color: E.gray5 }}>{shortDate(s.date)}</div>
               </div>
             ))}
           </div>

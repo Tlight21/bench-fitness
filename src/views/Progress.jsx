@@ -83,7 +83,7 @@ export default function Progress({ sessions, prs }) {
                     <span style={{ fontSize: 13, fontWeight: 600 }}>
                       {h.maxWeight ? `${h.maxWeight} kg` : 'BW'} × {h.avgReps} avg
                     </span>
-                    <span style={{ fontSize: 11, color: E.gray4 }}>{shortDate(h.date)}</span>
+                    <span style={{ fontSize: 11, color: E.gray5 }}>{shortDate(h.date)}</span>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
                     {h.sets.map((s, sIdx) => (
@@ -136,7 +136,7 @@ export default function Progress({ sessions, prs }) {
                       {prog && (
                         <div style={{ fontSize: 11, color: E.gray5, marginTop: 3 }}>
                           {prog.isBW ? `BW × ${prog.lastReps}` : `${prog.lastWeight} kg × ${prog.avgReps}`}
-                          <span style={{ color: E.gray4, marginLeft: 6 }}>{shortDate(prog.lastDate)}</span>
+                          <span style={{ color: E.gray5, marginLeft: 6 }}>{shortDate(prog.lastDate)}</span>
                         </div>
                       )}
                     </div>
