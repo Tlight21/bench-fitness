@@ -321,9 +321,9 @@ export default function App() {
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         .tap:active { opacity: 0.55; }
-        input { outline: none; }
+        input { outline: none; color: ${E.white}; }
         input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
-        body { background: ${E.black}; color: ${E.white}; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        body, button, select, input { background: ${E.black}; color: ${E.white}; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
       `}</style>
 
       {/* Header */}
