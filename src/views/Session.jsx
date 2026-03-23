@@ -273,6 +273,19 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
                     <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                       <input
                         type="number"
+                        inputMode="numeric"
+                        value={s.reps}
+                        onChange={e => updateSet(exIdx, sIdx, 'reps', e.target.value)}
+                        placeholder="Reps"
+                        style={{
+                          flex: 1, minWidth: 0, boxSizing: 'border-box',
+                          background: E.gray2, color: E.white, border: 'none',
+                          padding: 12, fontSize: 14,
+                          fontFamily: 'inherit', borderRadius: 4,
+                        }}
+                      />
+                      <input
+                        type="number"
                         inputMode="decimal"
                         value={s.weight}
                         onChange={e => updateSet(exIdx, sIdx, 'weight', e.target.value)}
@@ -283,19 +296,6 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
                           padding: 12, fontSize: 14,
                           fontFamily: 'inherit', borderRadius: 4,
                           borderBottom: pr ? `2px solid ${E.accent}` : 'none',
-                        }}
-                      />
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        value={s.reps}
-                        onChange={e => updateSet(exIdx, sIdx, 'reps', e.target.value)}
-                        placeholder="Reps"
-                        style={{
-                          flex: 1, minWidth: 0, boxSizing: 'border-box',
-                          background: E.gray2, color: E.white, border: 'none',
-                          padding: 12, fontSize: 14,
-                          fontFamily: 'inherit', borderRadius: 4,
                         }}
                       />
                     </div>

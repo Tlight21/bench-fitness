@@ -319,11 +319,12 @@ export default function App() {
     }}>
       {/* Global styles */}
       <style>{`
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; color: inherit; }
         .tap:active { opacity: 0.55; }
-        input { outline: none; color: ${E.white}; }
+        input { outline: none; }
         input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
-        body, button, select, input { background: ${E.black}; color: ${E.white}; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        input::placeholder { color: ${E.gray5}; opacity: 1; }
+        body { background: ${E.black}; color: ${E.white}; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
       `}</style>
 
       {/* Header */}
