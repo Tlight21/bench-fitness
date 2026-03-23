@@ -317,6 +317,21 @@
       return;
     }
 
+    // If sign-up succeeded but no session (email confirmation enabled)
+    if (isSignUp && !result.data.session) {
+      errEl.style.color = '#34C759';
+      errEl.textContent = 'Account created! Check your email to confirm, then sign in.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.textContent = 'SIGN IN';
+      isSignUp = false;
+      document.getElementById('bs-toggle').innerHTML =
+        'Don\'t have an account? <span style="color:#FA5400;">Sign up</span>';
+      document.getElementById('bs-password').value = '';
+      return;
+    }
+
     // Auth state change listener handles showing the app
   }
 
