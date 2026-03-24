@@ -91,7 +91,7 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 40,
-      background: E.black, overflowY: 'auto',
+      background: E.black, color: E.white, overflowY: 'auto',
       fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
     }}>
       {/* Header */}
@@ -172,19 +172,19 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
       {ex && (
         <div style={{ padding: '0 20px' }}>
           <div style={{ paddingTop: 22, paddingBottom: 20, borderBottom: `1px solid ${E.gray2}` }}>
-            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.5, marginBottom: 8 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.5, marginBottom: 8, color: E.white }}>
               {ex.name}
             </div>
             <div style={{ display: 'flex', gap: 20, marginBottom: prog ? 18 : 0 }}>
               <div>
                 <Label>Programme Target</Label>
-                <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4, color: E.white }}>
                   {ex.targetSets} × {ex.targetReps}
                 </div>
               </div>
               <div>
                 <Label>Load Guide</Label>
-                <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>{ex.targetWeight}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4, color: E.white }}>{ex.targetWeight}</div>
               </div>
             </div>
 
