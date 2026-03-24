@@ -250,6 +250,11 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
                           letterSpacing: 1, textTransform: 'uppercase',
                         }}>NEW PR</span>
                       )}
+                      <button onClick={() => deleteSet(exIdx, sIdx)} className="tap" style={{
+                        background: 'transparent', border: 'none',
+                        color: E.gray5, fontSize: 14, cursor: 'pointer',
+                        fontFamily: 'inherit', padding: '2px 4px', lineHeight: 1,
+                      }}>×</button>
                     </div>
                   </div>
                 ) : (
