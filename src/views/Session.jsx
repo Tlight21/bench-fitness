@@ -84,9 +84,31 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
     ))
   }
 
+  // Track session: add a custom exercise
+  const [newExName, setNewExName] = useState('')
+
+  const addTrackExercise = () => {
+    const name = newExName.trim()
+    if (!name) return
+    const eid = `track-${Date.now()}`
+    updateExercises(prev => [
+      ...prev,
+      {
+        eid, name, track: true,
+        targetSets: 1, targetReps: '1', targetWeight: '',
+        sets: [{ reps: '', weight: '', completed: false }],
+      },
+    ])
+    setNewExName('')
+    setExIdx(exercises.length) // select the new exercise
+    setSetIdx(0)
+  }
+
   const handleFinish = () => {
     onComplete({ ...session, exercises, completed: true })
   }
+
+  const isTrackSession = session.track
 
   return (
     <div style={{
@@ -167,6 +189,38 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
           })}
         </div>
       </div>
+
+      {/* Track session: add exercise input */}
+      {isTrackSession && (
+        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${E.gray2}` }}>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <input
+              type="text"
+              value={newExName}
+              onChange={e => setNewExName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addTrackExercise()}
+              placeholder="e.g. Sprint 100m"
+              style={{
+                flex: 1, minWidth: 0, boxSizing: 'border-box',
+                background: E.gray2, color: E.white, border: 'none',
+                padding: 12, fontSize: 14,
+                fontFamily: 'inherit', borderRadius: 4,
+              }}
+            />
+            <button onClick={addTrackExercise} className="tap" style={{
+              background: E.accent, color: E.white, border: 'none',
+              padding: '12px 16px', fontSize: 12, fontWeight: 800,
+              cursor: 'pointer', borderRadius: 4, fontFamily: 'inherit',
+              textTransform: 'uppercase', letterSpacing: 1, whiteSpace: 'nowrap',
+            }}>+ Add</button>
+          </div>
+          {exercises.length === 0 && (
+            <div style={{ fontSize: 12, color: E.gray5, marginTop: 10, lineHeight: 1.5 }}>
+              Add what your coach set today — name each exercise, then log reps and distance.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Current exercise info */}
       {ex && (
@@ -340,7 +394,7 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
       )}
 
       {/* Finish button */}
-      {allDone && (
+      {(allDone || (isTrackSession && exercises.length > 0)) && (
         <div style={{ padding: '20px 20px 100px' }}>
           <button onClick={handleFinish} className="tap" style={{
             width: '100%', background: E.green, color: E.black,

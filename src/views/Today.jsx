@@ -33,10 +33,13 @@ export default function Today({ prog, settings, sessions, onStart }) {
   const doneToday = isToday && sessions.some(s => s.date === today() && s.programmeId === prog.id)
   const progSessions = sessions.filter(s => s.programmeId === prog.id)
   const pct = Math.min(100, Math.round(realWeek / totalWeeks * 100))
-  const trainingDays = phase?.days?.filter(d => d.exercises.length > 0).map(d => d.id) || []
+  const trainingDays = phase?.days?.filter(d => d.exercises.length > 0 || d.track).map(d => d.id) || []
+
+  const isTrackDay = selectedDayData?.track
 
   const handleStart = () => {
-    if (!selectedDayData || !selectedDayData.exercises.length) return
+    if (!selectedDayData) return
+    if (!isTrackDay && !selectedDayData.exercises.length) return
     const session = {
       id: `s-${Date.now()}`,
       programmeId: prog.id,
@@ -47,8 +50,9 @@ export default function Today({ prog, settings, sessions, onStart }) {
       phaseName: phase.name,
       weekNum: viewWeek,
       completed: false,
+      track: isTrackDay || false,
       startTime: new Date().toISOString(),
-      exercises: selectedDayData.exercises.map(ex => ({
+      exercises: isTrackDay ? [] : selectedDayData.exercises.map(ex => ({
         eid: ex.eid,
         name: ex.name,
         targetSets: ex.targetSets,
@@ -182,7 +186,43 @@ export default function Today({ prog, settings, sessions, onStart }) {
 
       {/* Selected day's session */}
       <div style={{ padding: '20px 20px' }}>
-        {selectedDayData && selectedDayData.exercises.length > 0 ? (
+        {isTrackDay ? (
+          <>
+            <Label style={{ marginBottom: 6 }}>
+              {isToday ? "Today's Session" : `${DAY_NAMES[selectedDay]}'s Session`}
+            </Label>
+            <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: -0.5, marginBottom: 12 }}>
+              Track
+            </div>
+            <div style={{
+              background: E.gray1, borderRadius: 8, padding: 20,
+              marginBottom: 20,
+            }}>
+              <div style={{ fontSize: 13, color: E.gray6, lineHeight: 1.6 }}>
+                Coach-led session. Log your reps and distances after training.
+              </div>
+            </div>
+            {isToday && !doneToday && (
+              <button onClick={handleStart} className="tap" style={{
+                width: '100%', background: E.white, color: E.black,
+                border: 'none', borderRadius: 4, padding: '17px 0',
+                fontSize: 13, fontWeight: 800, letterSpacing: 1,
+                cursor: 'pointer', fontFamily: 'inherit', textTransform: 'uppercase',
+              }}>
+                Log Track Session
+              </button>
+            )}
+            {isToday && doneToday && (
+              <div style={{
+                textAlign: 'center', padding: '17px 0',
+                fontSize: 13, fontWeight: 800, letterSpacing: 1,
+                color: E.green, textTransform: 'uppercase',
+              }}>
+                ✓ Logged today
+              </div>
+            )}
+          </>
+        ) : selectedDayData && selectedDayData.exercises.length > 0 ? (
           <>
             <Label style={{ marginBottom: 6 }}>
               {isToday ? "Today's Session" : `${DAY_NAMES[selectedDay]}'s Session`}
@@ -203,7 +243,7 @@ export default function Today({ prog, settings, sessions, onStart }) {
                     }}>
                       <span style={{ fontSize: 14, fontWeight: 500 }}>{ex.name}</span>
                       <span style={{ fontSize: 12, color: E.gray5 }}>
-                        {ex.targetSets} × {ex.track ? ex.targetWeight : ex.targetReps}
+                        {ex.targetSets} × {ex.targetReps}
                       </span>
                     </div>
                     {p && (
