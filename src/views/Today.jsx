@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { E } from '../theme'
 import Label from '../components/Label'
 import Divider from '../components/Divider'
@@ -10,36 +11,50 @@ const WEEK_DAYS = [
   { d: 'sun', l: 'S' },
 ]
 
+const DAY_NAMES = { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' }
+
 export default function Today({ prog, settings, sessions, onStart }) {
-  const week = currentWeek(settings.startDate)
-  const phase = findPhase(prog, week)
-  const dayId = todayDayId()
-  const todayDay = phase?.days?.find(d => d.id === dayId)
-  const doneToday = sessions.some(s => s.date === today() && s.programmeId === prog.id)
-  const progSessions = sessions.filter(s => s.programmeId === prog.id)
+  const realWeek = currentWeek(settings.startDate)
+  const realDayId = todayDayId()
   const totalWeeks = prog.phases[prog.phases.length - 1]?.weekEnd || 28
-  const pct = Math.min(100, Math.round(week / totalWeeks * 100))
+
+  const [viewWeek, setViewWeek] = useState(realWeek)
+  const [selectedDay, setSelectedDay] = useState(realDayId)
+
+  // Reset to today when component mounts (tab switch / app reopen)
+  useEffect(() => {
+    setViewWeek(realWeek)
+    setSelectedDay(realDayId)
+  }, [realWeek, realDayId])
+
+  const phase = findPhase(prog, viewWeek)
+  const selectedDayData = phase?.days?.find(d => d.id === selectedDay)
+  const isToday = viewWeek === realWeek && selectedDay === realDayId
+  const doneToday = isToday && sessions.some(s => s.date === today() && s.programmeId === prog.id)
+  const progSessions = sessions.filter(s => s.programmeId === prog.id)
+  const pct = Math.min(100, Math.round(realWeek / totalWeeks * 100))
   const trainingDays = phase?.days?.filter(d => d.exercises.length > 0).map(d => d.id) || []
 
   const handleStart = () => {
-    if (!todayDay || !todayDay.exercises.length) return
+    if (!selectedDayData || !selectedDayData.exercises.length) return
     const session = {
       id: `s-${Date.now()}`,
       programmeId: prog.id,
       date: today(),
-      dayId,
-      sessionTitle: todayDay.title,
+      dayId: selectedDay,
+      sessionTitle: selectedDayData.title,
       phaseId: phase.id,
       phaseName: phase.name,
-      weekNum: week,
+      weekNum: viewWeek,
       completed: false,
       startTime: new Date().toISOString(),
-      exercises: todayDay.exercises.map(ex => ({
+      exercises: selectedDayData.exercises.map(ex => ({
         eid: ex.eid,
         name: ex.name,
         targetSets: ex.targetSets,
         targetReps: ex.targetReps,
         targetWeight: ex.targetWeight,
+        track: ex.track || false,
         sets: Array.from({ length: ex.targetSets }, () => ({
           reps: '', weight: '', completed: false,
         })),
@@ -47,6 +62,9 @@ export default function Today({ prog, settings, sessions, onStart }) {
     }
     onStart(session)
   }
+
+  const prevWeek = () => setViewWeek(w => Math.max(1, w - 1))
+  const nextWeek = () => setViewWeek(w => Math.min(totalWeeks, w + 1))
 
   return (
     <div style={{ paddingBottom: 100 }}>
@@ -58,10 +76,10 @@ export default function Today({ prog, settings, sessions, onStart }) {
           }).toUpperCase()}
         </div>
         <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: -1, lineHeight: 1.05 }}>
-          Week {week}
+          Week {realWeek}
         </div>
         <div style={{ fontSize: 13, color: E.gray5, marginTop: 4 }}>
-          {phase?.fullName}
+          {findPhase(prog, realWeek)?.fullName}
         </div>
       </div>
 
@@ -82,8 +100,8 @@ export default function Today({ prog, settings, sessions, onStart }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }}>
         {[
           { label: 'Sessions', value: progSessions.length },
-          { label: 'Phase', value: phase?.name },
-          { label: 'Wks Left', value: Math.max(0, totalWeeks - week) },
+          { label: 'Phase', value: findPhase(prog, realWeek)?.name },
+          { label: 'Wks Left', value: Math.max(0, totalWeeks - realWeek) },
         ].map(({ label, value }, idx) => (
           <div key={label} style={{
             padding: 20,
@@ -97,29 +115,64 @@ export default function Today({ prog, settings, sessions, onStart }) {
 
       <Divider />
 
-      {/* Week days */}
+      {/* Week selector */}
       <div style={{ padding: '20px 20px 0' }}>
-        <Label style={{ marginBottom: 14 }}>This Week</Label>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <button onClick={prevWeek} className="tap" style={{
+            background: 'transparent', border: 'none', color: viewWeek <= 1 ? E.gray3 : E.gray5,
+            fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', padding: '4px 8px',
+          }} disabled={viewWeek <= 1}>←</button>
+          <button onClick={() => { setViewWeek(realWeek); setSelectedDay(realDayId) }} className="tap" style={{
+            background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: '4px 8px',
+          }}>
+            <Label style={{ color: viewWeek === realWeek ? E.white : E.gray5 }}>
+              {viewWeek === realWeek ? 'This Week' : `Week ${viewWeek}`}
+            </Label>
+            {viewWeek !== realWeek && (
+              <div style={{ fontSize: 9, color: E.gray5, textAlign: 'center', marginTop: 2 }}>
+                {phase?.name}
+              </div>
+            )}
+          </button>
+          <button onClick={nextWeek} className="tap" style={{
+            background: 'transparent', border: 'none', color: viewWeek >= totalWeeks ? E.gray3 : E.gray5,
+            fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', padding: '4px 8px',
+          }} disabled={viewWeek >= totalWeeks}>→</button>
+        </div>
+
+        {/* Day selector */}
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(7,1fr)',
           gap: 6, marginBottom: 24,
         }}>
           {WEEK_DAYS.map(({ d, l }) => {
-            const isToday = d === dayId
+            const isCurrent = viewWeek === realWeek && d === realDayId
+            const isSelected = d === selectedDay
             const isTraining = trainingDays.includes(d)
             return (
-              <div key={d} style={{
+              <button key={d} onClick={() => setSelectedDay(d)} className="tap" style={{
+                background: 'transparent', border: 'none', cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                padding: '6px 0', fontFamily: 'inherit',
               }}>
                 <span style={{
                   fontSize: 10, fontWeight: 700,
-                  color: isToday ? E.white : E.gray4, letterSpacing: 0.5,
+                  color: isSelected ? E.white : E.gray5, letterSpacing: 0.5,
                 }}>{l}</span>
                 <div style={{
-                  width: 8, height: 8, borderRadius: '50%',
-                  background: isToday ? E.accent : isTraining ? E.gray3 : 'transparent',
-                }} />
-              </div>
+                  width: isSelected ? 20 : 8, height: isSelected ? 20 : 8,
+                  borderRadius: '50%',
+                  background: isSelected ? E.accent : isCurrent ? E.white : isTraining ? E.gray3 : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.2s',
+                }}>
+                  {isSelected && (
+                    <span style={{ fontSize: 8, fontWeight: 800, color: E.white }}>
+                      {l}
+                    </span>
+                  )}
+                </div>
+              </button>
             )
           })}
         </div>
@@ -127,57 +180,59 @@ export default function Today({ prog, settings, sessions, onStart }) {
 
       <Divider />
 
-      {/* Today's session */}
+      {/* Selected day's session */}
       <div style={{ padding: '20px 20px' }}>
-        {todayDay && todayDay.exercises.length > 0 ? (
+        {selectedDayData && selectedDayData.exercises.length > 0 ? (
           <>
-            <Label style={{ marginBottom: 6 }}>Today&apos;s Session</Label>
+            <Label style={{ marginBottom: 6 }}>
+              {isToday ? "Today's Session" : `${DAY_NAMES[selectedDay]}'s Session`}
+            </Label>
             <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: -0.5, marginBottom: 20 }}>
-              {todayDay.title}
+              {selectedDayData.title}
             </div>
 
             {/* Exercise list */}
-            {todayDay.exercises.map((ex, idx) => {
-              const prog = getProgression(sessions, ex.eid, ex.targetReps)
+            {selectedDayData.exercises.map((ex, idx) => {
+              const p = getProgression(sessions, ex.eid, ex.targetReps)
               return (
                 <div key={ex.eid}>
                   <div style={{ paddingBottom: 16, paddingTop: idx === 0 ? 0 : 16 }}>
                     <div style={{
                       display: 'flex', justifyContent: 'space-between',
-                      alignItems: 'flex-start', marginBottom: prog ? 8 : 0,
+                      alignItems: 'flex-start', marginBottom: p ? 8 : 0,
                     }}>
                       <span style={{ fontSize: 14, fontWeight: 500 }}>{ex.name}</span>
                       <span style={{ fontSize: 12, color: E.gray5 }}>
-                        {ex.targetSets} × {ex.targetReps}
+                        {ex.targetSets} × {ex.track ? ex.targetWeight : ex.targetReps}
                       </span>
                     </div>
-                    {prog && (
+                    {p && (
                       <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
                         <div>
                           <Label style={{ marginBottom: 2 }}>Last time</Label>
                           <span style={{ fontSize: 12, color: E.gray6 }}>
-                            {prog.isBW ? `BW × ${prog.lastReps}` : `${prog.lastWeight} kg × ${prog.avgReps}`}
+                            {p.isBW ? `BW × ${p.lastReps}` : `${p.lastWeight} kg × ${p.avgReps}`}
                             <span style={{ fontSize: 10, color: E.gray5, marginLeft: 6 }}>
-                              {shortDate(prog.lastDate)}
+                              {shortDate(p.lastDate)}
                             </span>
                           </span>
                         </div>
                         <div>
                           <Label style={{ marginBottom: 2, color: E.accent }}>Beat this</Label>
                           <span style={{ fontSize: 12, fontWeight: 700, color: E.accent }}>
-                            {prog.isBW ? `BW × ${prog.nextReps}` : `${prog.nextWeight} kg × ${prog.nextReps}`}
+                            {p.isBW ? `BW × ${p.nextReps}` : `${p.nextWeight} kg × ${p.nextReps}`}
                           </span>
                         </div>
                       </div>
                     )}
                   </div>
-                  {idx < todayDay.exercises.length - 1 && <Divider />}
+                  {idx < selectedDayData.exercises.length - 1 && <Divider />}
                 </div>
               )
             })}
 
-            {/* Start button */}
-            {!doneToday && (
+            {/* Start button — only for today */}
+            {isToday && !doneToday && (
               <button onClick={handleStart} className="tap" style={{
                 width: '100%', background: E.white, color: E.black,
                 border: 'none', borderRadius: 4, padding: '17px 0',
@@ -188,7 +243,7 @@ export default function Today({ prog, settings, sessions, onStart }) {
                 Start Session
               </button>
             )}
-            {doneToday && (
+            {isToday && doneToday && (
               <div style={{
                 textAlign: 'center', padding: '17px 0', marginTop: 20,
                 fontSize: 13, fontWeight: 800, letterSpacing: 1,
@@ -202,7 +257,7 @@ export default function Today({ prog, settings, sessions, onStart }) {
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>No Session</div>
             <div style={{ fontSize: 13, color: E.gray5 }}>
-              {todayDay ? 'Recovery is part of the programme.' : 'Nothing scheduled today.'}
+              {selectedDayData ? 'Recovery is part of the programme.' : `Nothing scheduled for ${DAY_NAMES[selectedDay] || 'this day'}.`}
             </div>
           </div>
         )}

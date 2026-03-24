@@ -242,7 +242,10 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <span style={{ fontSize: 13, color: E.gray5 }}>
-                        {s.weight ? `${s.weight} kg` : 'BW'} × {s.reps || '—'}
+                        {ex.track
+                          ? `${s.reps || '—'} × ${s.weight || '—'}`
+                          : `${s.weight ? `${s.weight} kg` : 'BW'} × ${s.reps || '—'}`
+                        }
                       </span>
                       {pr && (
                         <span style={{
@@ -281,7 +284,7 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
                         inputMode="numeric"
                         value={s.reps}
                         onChange={e => updateSet(exIdx, sIdx, 'reps', e.target.value)}
-                        placeholder="Reps"
+                        placeholder={ex.track ? 'Reps' : 'Reps'}
                         style={{
                           flex: 1, minWidth: 0, boxSizing: 'border-box',
                           background: E.gray2, color: E.white, border: 'none',
@@ -290,11 +293,11 @@ export default function Session({ session, sessions, prs, onComplete, onDiscard,
                         }}
                       />
                       <input
-                        type="number"
-                        inputMode="decimal"
+                        type={ex.track ? 'text' : 'number'}
+                        inputMode={ex.track ? 'text' : 'decimal'}
                         value={s.weight}
                         onChange={e => updateSet(exIdx, sIdx, 'weight', e.target.value)}
-                        placeholder="Weight (kg)"
+                        placeholder={ex.track ? 'Distance' : 'Weight (kg)'}
                         style={{
                           flex: 1, minWidth: 0, boxSizing: 'border-box',
                           background: E.gray2, color: E.white, border: 'none',

@@ -104,6 +104,31 @@ const COMP_WED = [
   { eid: 'carry-comp', name: 'Carries + Landmine', targetSets: 2, targetReps: '20 m / 10 ea', targetWeight: 'Moderate' },
 ]
 
+// Track days — reps × distance
+const TRACK_GPP = [
+  { eid: 'sprint-60', name: 'Sprint 60m', targetSets: 4, targetReps: '1', targetWeight: '60 m', track: true },
+  { eid: 'sprint-100', name: 'Sprint 100m', targetSets: 3, targetReps: '1', targetWeight: '100 m', track: true },
+  { eid: 'sprint-200', name: 'Sprint 200m', targetSets: 2, targetReps: '1', targetWeight: '200 m', track: true },
+]
+
+const TRACK_SPP = [
+  { eid: 'sprint-60-spp', name: 'Sprint 60m', targetSets: 4, targetReps: '1', targetWeight: '60 m', track: true },
+  { eid: 'sprint-100-spp', name: 'Sprint 100m', targetSets: 4, targetReps: '1', targetWeight: '100 m', track: true },
+  { eid: 'sprint-200-spp', name: 'Sprint 200m', targetSets: 3, targetReps: '1', targetWeight: '200 m', track: true },
+  { eid: 'sprint-150', name: 'Sprint 150m', targetSets: 2, targetReps: '1', targetWeight: '150 m', track: true },
+]
+
+const TRACK_PC = [
+  { eid: 'sprint-30-pc', name: 'Sprint 30m', targetSets: 4, targetReps: '1', targetWeight: '30 m', track: true },
+  { eid: 'sprint-60-pc', name: 'Sprint 60m', targetSets: 3, targetReps: '1', targetWeight: '60 m', track: true },
+  { eid: 'sprint-100-pc', name: 'Sprint 100m', targetSets: 3, targetReps: '1', targetWeight: '100 m', track: true },
+]
+
+const TRACK_COMP = [
+  { eid: 'sprint-30-comp', name: 'Sprint 30m', targetSets: 3, targetReps: '1', targetWeight: '30 m', track: true },
+  { eid: 'sprint-60-comp', name: 'Sprint 60m', targetSets: 3, targetReps: '1', targetWeight: '60 m', track: true },
+]
+
 export const DEFAULT_PROGRAMME = {
   id: 'sprint-100-200',
   name: 'Sprint 100m / 200m',
@@ -116,7 +141,9 @@ export const DEFAULT_PROGRAMME = {
       weekEnd: 8,
       days: [
         { id: 'mon', name: 'Monday', title: 'Lower Strength', exercises: GPP_MON },
+        { id: 'tue', name: 'Tuesday', title: 'Track', exercises: TRACK_GPP },
         { id: 'wed', name: 'Wednesday', title: 'Upper Body + Core', exercises: GPP_WED },
+        { id: 'thu', name: 'Thursday', title: 'Track', exercises: TRACK_GPP },
         { id: 'fri', name: 'Friday', title: 'Olympic Lifting', exercises: GPP_FRI },
         { id: 'sat', name: 'Saturday', title: 'Conditioning', exercises: GPP_SAT },
       ],
@@ -129,7 +156,9 @@ export const DEFAULT_PROGRAMME = {
       weekEnd: 16,
       days: [
         { id: 'mon', name: 'Monday', title: 'Lower Strength — Peak', exercises: SPP_MON },
+        { id: 'tue', name: 'Tuesday', title: 'Track', exercises: TRACK_SPP },
         { id: 'wed', name: 'Wednesday', title: 'Upper + Core', exercises: SPP_WED },
+        { id: 'thu', name: 'Thursday', title: 'Track', exercises: TRACK_SPP },
         { id: 'fri', name: 'Friday', title: 'Olympic Lifting + Contrast', exercises: SPP_FRI },
         { id: 'sat', name: 'Saturday', title: 'Conditioning + Power', exercises: SPP_SAT },
       ],
@@ -142,7 +171,9 @@ export const DEFAULT_PROGRAMME = {
       weekEnd: 20,
       days: [
         { id: 'mon', name: 'Monday', title: 'Lower — Peak', exercises: PC_MON },
+        { id: 'tue', name: 'Tuesday', title: 'Track', exercises: TRACK_PC },
         { id: 'wed', name: 'Wednesday', title: 'Upper + Core', exercises: PC_WED },
+        { id: 'thu', name: 'Thursday', title: 'Track', exercises: TRACK_PC },
         { id: 'fri', name: 'Friday', title: 'Olympic Lifting — Peak', exercises: PC_FRI },
         { id: 'sat', name: 'Saturday', title: 'Tempo + Mobility', exercises: [] },
       ],
@@ -155,7 +186,9 @@ export const DEFAULT_PROGRAMME = {
       weekEnd: 28,
       days: [
         { id: 'mon', name: 'Monday', title: 'Full Body Maintenance', exercises: COMP_MON },
+        { id: 'tue', name: 'Tuesday', title: 'Track', exercises: TRACK_COMP },
         { id: 'wed', name: 'Wednesday', title: 'Upper + Core', exercises: COMP_WED },
+        { id: 'thu', name: 'Thursday', title: 'Track', exercises: TRACK_COMP },
         { id: 'fri', name: 'Friday', title: 'Speed Endurance', exercises: [] },
         { id: 'sat', name: 'Saturday', title: 'Race Day', exercises: [] },
       ],
