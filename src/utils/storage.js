@@ -5,7 +5,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const LS_PREFIX = 'bench:'
 const SYNC_TS_PREFIX = 'bench_sync_ts:'
-const SYNC_KEYS = ['nk:settings', 'nk:sessions', 'nk:prs', 'nk:programmes']
+const SYNC_KEYS = ['nk:settings', 'nk:sessions', 'nk:prs', 'nk:programmes', 'nk:nutrition', 'nk:shopping']
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 

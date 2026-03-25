@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react'
 import { E } from './theme'
 import { storage, supabase, performInitialSync } from './utils/storage'
 import { DEFAULT_PROGRAMME } from './data/programme'
+import { DEFAULT_NUTRITION } from './data/nutrition'
+import { DEFAULT_SHOPPING } from './data/shopping'
+import { currentWeek, findPhase } from './utils/dates'
 import TabBar from './components/TabBar'
 import Today from './views/Today'
 import Session from './views/Session'
 import Progress from './views/Progress'
 import History from './views/History'
 import Plans from './views/Plans'
+import Shopping from './views/Shopping'
 
 export default function App() {
   // Auth state
@@ -27,6 +31,8 @@ export default function App() {
   const [selectedProg, setSelectedProg] = useState('sprint-100-200')
   const [currentSession, setCurrentSession] = useState(null)
   const [settings, setSettings] = useState({ startDate: '2026-03-23' })
+  const [nutritionPlans, setNutritionPlans] = useState(DEFAULT_NUTRITION)
+  const [shoppingList, setShoppingList] = useState(DEFAULT_SHOPPING)
   const [loading, setLoading] = useState(true)
 
   // Auto-save active session to localStorage
@@ -104,6 +110,15 @@ export default function App() {
       setProgrammes(JSON.parse(p.value))
     } catch {}
 
+    try {
+      const n = await storage.get('nk:nutrition')
+      setNutritionPlans(JSON.parse(n.value))
+    } catch {}
+    try {
+      const s = await storage.get('nk:shopping')
+      setShoppingList(JSON.parse(s.value))
+    } catch {}
+
     // Restore active session if one was in progress
     try {
       const saved = localStorage.getItem('bench:active_session')
@@ -124,6 +139,21 @@ export default function App() {
   const savePrs = (newPrs) => {
     setPrs(newPrs)
     storage.set('nk:prs', JSON.stringify(newPrs))
+  }
+
+  const saveNutrition = (plans) => {
+    setNutritionPlans(plans)
+    storage.set('nk:nutrition', JSON.stringify(plans))
+  }
+
+  const saveShopping = (list) => {
+    setShoppingList(list)
+    storage.set('nk:shopping', JSON.stringify(list))
+  }
+
+  const saveProgrammes = (newProgs) => {
+    setProgrammes(newProgs)
+    storage.set('nk:programmes', JSON.stringify(newProgs))
   }
 
   // Session completion
@@ -365,6 +395,7 @@ export default function App() {
           settings={settings}
           sessions={sessions}
           onStart={saveActiveSession}
+          nutritionPlans={nutritionPlans}
         />
       )}
       {tab === 'progress' && (
@@ -373,11 +404,22 @@ export default function App() {
       {tab === 'history' && (
         <History sessions={sessions} onDelete={handleDeleteSession} />
       )}
+      {tab === 'shopping' && (
+        <Shopping
+          shoppingList={shoppingList}
+          onUpdate={saveShopping}
+          nutritionPlans={nutritionPlans}
+          currentPhaseId={findPhase(prog, currentWeek(settings.startDate))?.id}
+        />
+      )}
       {tab === 'plans' && (
         <Plans
           programmes={programmes}
           selectedId={selectedProg}
           onSelect={setSelectedProg}
+          nutritionPlans={nutritionPlans}
+          onSaveNutrition={saveNutrition}
+          onSaveProgrammes={saveProgrammes}
         />
       )}
 

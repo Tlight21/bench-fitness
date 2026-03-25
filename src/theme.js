@@ -10,4 +10,6 @@ export const E = {
   accent: '#FA5400',
   green:  '#00C853',
   red:    '#FF3B30',
+  amber:  '#FFB300',
+  blue:   '#2196F3',
 }

@@ -13,7 +13,16 @@ const WEEK_DAYS = [
 
 const DAY_NAMES = { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' }
 
-export default function Today({ prog, settings, sessions, onStart }) {
+const SESSION_TYPES = {
+  'gym-lower': 'Gym — Lower strength',
+  'track': 'Track — Coach-led',
+  'gym-upper': 'Gym — Upper body & core',
+  'gym-olympic': 'Gym — Olympic lifting',
+  'gym-conditioning': 'Gym — Conditioning',
+  'rest': 'Rest day',
+}
+
+export default function Today({ prog, settings, sessions, onStart, nutritionPlans }) {
   const realWeek = currentWeek(settings.startDate)
   const realDayId = todayDayId()
   const totalWeeks = prog.phases[prog.phases.length - 1]?.weekEnd || 28
@@ -36,6 +45,11 @@ export default function Today({ prog, settings, sessions, onStart }) {
   const trainingDays = phase?.days?.filter(d => d.exercises.length > 0 || d.track).map(d => d.id) || []
 
   const isTrackDay = selectedDayData?.track
+  const [viewMode, setViewMode] = useState('session')
+
+  // Get nutrition data for selected day
+  const currentPhase = findPhase(prog, viewWeek)
+  const nutritionDay = nutritionPlans?.[currentPhase?.id]?.days?.find(d => d.dayOfWeek === selectedDay)
 
   const handleStart = () => {
     if (!selectedDayData) return
@@ -182,9 +196,94 @@ export default function Today({ prog, settings, sessions, onStart }) {
         </div>
       </div>
 
+      {/* Session / Nutrition toggle */}
+      <div style={{ padding: '12px 20px 0' }}>
+        <div style={{
+          display: 'flex', background: E.gray1, borderRadius: 8, padding: 2,
+        }}>
+          {['session', 'nutrition'].map(mode => (
+            <button key={mode} onClick={() => setViewMode(mode)} className="tap" style={{
+              flex: 1, background: viewMode === mode ? E.gray2 : 'transparent',
+              border: 'none', borderRadius: 6, padding: '8px 0',
+              fontSize: 12, fontWeight: 700, letterSpacing: 0.5,
+              color: viewMode === mode ? E.white : E.gray5,
+              cursor: 'pointer', fontFamily: 'inherit', textTransform: 'capitalize',
+            }}>
+              {mode}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <Divider />
 
+      {/* Nutrition view */}
+      {viewMode === 'nutrition' && (
+        <div style={{ padding: '20px 20px', paddingBottom: 100 }}>
+          {nutritionDay ? (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+                <Label>
+                  {isToday ? "Today's Nutrition" : `${DAY_NAMES[selectedDay]}'s Nutrition`}
+                </Label>
+                <span style={{ fontSize: 18, fontWeight: 800, color: E.white }}>
+                  {nutritionDay.targetKcal.toLocaleString()} kcal
+                </span>
+              </div>
+              <div style={{ fontSize: 11, color: E.gray5, marginBottom: 20 }}>
+                {SESSION_TYPES[nutritionDay.sessionType] || nutritionDay.sessionType}
+              </div>
+
+              {nutritionDay.meals.map((meal, idx) => (
+                <div key={idx}>
+                  <div style={{ padding: '14px 0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 11, color: E.gray5, minWidth: 42 }}>{meal.time}</span>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: E.white }}>{meal.name}</span>
+                        {meal.highlight === 'pre' && (
+                          <span style={{
+                            fontSize: 9, fontWeight: 800, letterSpacing: 1,
+                            color: E.amber, background: `${E.amber}1A`,
+                            padding: '2px 6px', borderRadius: 3,
+                          }}>PRE</span>
+                        )}
+                        {meal.highlight === 'post' && (
+                          <span style={{
+                            fontSize: 9, fontWeight: 800, letterSpacing: 1,
+                            color: E.blue, background: `${E.blue}1A`,
+                            padding: '2px 6px', borderRadius: 3,
+                          }}>POST</span>
+                        )}
+                      </div>
+                      <span style={{ fontSize: 12, color: E.gray5 }}>{meal.kcal}</span>
+                    </div>
+                    <div style={{ paddingLeft: 52 }}>
+                      {meal.items.map((item, iIdx) => (
+                        <div key={iIdx} style={{
+                          fontSize: 12, color: E.gray6, lineHeight: 1.8,
+                        }}>
+                          {item.quantity} — {item.name}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {idx < nutritionDay.meals.length - 1 && <Divider />}
+                </div>
+              ))}
+            </>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6, color: E.white }}>No Nutrition Plan</div>
+              <div style={{ fontSize: 13, color: E.gray5 }}>Set up your meals in the Plans tab.</div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Selected day's session */}
+      {viewMode === 'session' && (
+      <>
       <div style={{ padding: '20px 20px' }}>
         {isTrackDay ? (
           <>
@@ -325,6 +424,8 @@ export default function Today({ prog, settings, sessions, onStart }) {
             ))}
           </div>
         </>
+      )}
+      </>
       )}
     </div>
   )
