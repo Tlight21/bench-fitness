@@ -7,7 +7,7 @@ import { DEFAULT_NUTRITION } from '../data/nutrition'
 
 const DAY_NAMES = { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' }
 
-export default function Plans({ programmes, selectedId, onSelect, nutritionPlans, onSaveNutrition, onSaveProgrammes }) {
+export default function Plans({ programmes, selectedId, onSelect, nutritionPlans, onSaveNutrition, onSaveProgrammes, settings, onSaveSettings }) {
   const [editPhase, setEditPhase] = useState('gpp')
   const [editSection, setEditSection] = useState('training')
   const [expandedDay, setExpandedDay] = useState(null)
@@ -19,6 +19,7 @@ export default function Plans({ programmes, selectedId, onSelect, nutritionPlans
   const [addingItem, setAddingItem] = useState(null) // { dayIdx, mealIdx }
   const [newItem, setNewItem] = useState({ name: '', quantity: '' })
   const [confirmReset, setConfirmReset] = useState(false)
+  const [confirmRestart, setConfirmRestart] = useState(false)
 
   const prog = programmes.find(p => p.id === selectedId) || programmes[0]
   const phase = prog.phases.find(p => p.id === editPhase)
@@ -517,6 +518,42 @@ export default function Plans({ programmes, selectedId, onSelect, nutritionPlans
             letterSpacing: 1, cursor: 'pointer', borderRadius: 4,
             fontFamily: 'inherit', textTransform: 'uppercase',
           }}>Reset {editSection} to default</button>
+        )}
+      </div>
+
+      {/* Restart programme */}
+      <div style={{ padding: '0 20px 20px' }}>
+        {confirmRestart ? (
+          <div>
+            <div style={{ fontSize: 12, color: E.gray5, marginBottom: 10 }}>
+              This sets yesterday as Day 1, Week 1. Are you sure?
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => {
+                const yesterday = new Date()
+                yesterday.setDate(yesterday.getDate() - 1)
+                const dateStr = yesterday.toISOString().split('T')[0]
+                onSaveSettings({ ...settings, startDate: dateStr })
+                setConfirmRestart(false)
+              }} className="tap" style={{
+                flex: 1, background: E.accent, color: E.white, border: 'none',
+                padding: 12, fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                borderRadius: 4, fontFamily: 'inherit', textTransform: 'uppercase',
+              }}>Restart</button>
+              <button onClick={() => setConfirmRestart(false)} className="tap" style={{
+                flex: 1, background: E.gray2, color: E.gray5, border: 'none',
+                padding: 12, fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                borderRadius: 4, fontFamily: 'inherit', textTransform: 'uppercase',
+              }}>Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <button onClick={() => setConfirmRestart(true)} className="tap" style={{
+            width: '100%', background: 'transparent', border: `1px solid ${E.gray3}`,
+            color: E.gray5, padding: '12px 0', fontSize: 11, fontWeight: 700,
+            letterSpacing: 1, cursor: 'pointer', borderRadius: 4,
+            fontFamily: 'inherit', textTransform: 'uppercase',
+          }}>Restart Programme</button>
         )}
       </div>
     </div>

@@ -30,7 +30,7 @@ export default function App() {
   const [prs, setPrs] = useState({})
   const [selectedProg, setSelectedProg] = useState('sprint-100-200')
   const [currentSession, setCurrentSession] = useState(null)
-  const [settings, setSettings] = useState({ startDate: '2026-03-23' })
+  const [settings, setSettings] = useState({ startDate: '2026-04-13' })
   const [nutritionPlans, setNutritionPlans] = useState(DEFAULT_NUTRITION)
   const [shoppingList, setShoppingList] = useState(DEFAULT_SHOPPING)
   const [loading, setLoading] = useState(true)
@@ -154,6 +154,11 @@ export default function App() {
   const saveProgrammes = (newProgs) => {
     setProgrammes(newProgs)
     storage.set('nk:programmes', JSON.stringify(newProgs))
+  }
+
+  const saveSettings = (newSettings) => {
+    setSettings(newSettings)
+    storage.set('nk:settings', JSON.stringify(newSettings))
   }
 
   // Session completion
@@ -420,6 +425,8 @@ export default function App() {
           nutritionPlans={nutritionPlans}
           onSaveNutrition={saveNutrition}
           onSaveProgrammes={saveProgrammes}
+          settings={settings}
+          onSaveSettings={saveSettings}
         />
       )}
 
